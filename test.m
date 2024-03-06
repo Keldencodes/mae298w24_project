@@ -1,1 +1,2 @@
-disp("Hello")
+disp("Hello\n")
+disp("frothorslothonhoth")
