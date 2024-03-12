@@ -2,17 +2,18 @@
 %AZ, Feb 15 2024
 
 %sensors
-IMU_noise = 0.05 * (pi/180); %error, deg/s -> rad/s, 1 sigma
-att_noise = 1.50 * (pi/180); %error, deg -> rad
-IMU_bias = [0.1; 0; 0] * (pi/180); %bias -> rad
+% IMU_noise = 0.05 * (pi/180); %error, deg/s -> rad/s, 1 sigma
+% att_noise = 1.50 * (pi/180); %error, deg -> rad
+IMU_noise = 0;
+att_noise = 0;
 
 %initial attitude and angular rates
 q = [-0.145392350642603;0;0;0.989374077068233];  %arbitrary initial attitude, scalar last
-w = 0.2*[1;5;2]*pi/180;  %deg/s -> rad/sec
+w = 0.2*[1;5;2]*pi/180;  %deg/s -> rad/s
 
 %target rotation
-ang = 135 * (pi/180); % deg -> rad
-R1 = [1 0 0; 0 cos(ang) -1*sin(ang); 0 sin(ang) cos(ang)];
+ang = 135 * (pi/180);
+R1 = [1 0 0; 0 cos(ang) -1*sin(ang); 0 sin(ang) cos(ang)]; % wrong neg
 R2 = [cos(ang) 0 sin(ang); 0 1 0; -1*sin(ang) 0 cos(ang)];
 R3 = [cos(ang) -1*sin(ang) 0; sin(ang) cos(ang) 0; 0 0 1];
 q_i = DCM_to_quat_v2(R3);
@@ -39,7 +40,7 @@ rw_w_prev = 0;
 %        q_180x(1)   q_180x(2)   q_180x(3)   q_180x(4)]*q;
 % q_t = q;
 % time
-t_f = 60; %length of sim, seconds
+t_f = 600; %length of sim, seconds
 dt = 0.01; %time step. May misconverge at larger time steps or at faster angular rates
 t = 0:dt:t_f;
 n = length(t);
@@ -58,7 +59,6 @@ MOI = 10^-9 * [1869276   35027   -9213;   %estimated MOI for a particular 1U spa
                  -9213   -8048 1992745];
 mass = 0.975;
 cg_offset = 10^-3 * [-0.5 1.8 -0.6];
-%cg_offset = 10^-3 * [0 0 0];
 
 % update these values with actual values of your reaction wheels
 rw_J            = 10^-5; %kg*m2
@@ -75,7 +75,6 @@ time_last_rw_cmd = 0;
 rw_ramp_start = 20;     %time to start  linearly ramping wheel command
 rw_ramp_end   = 50;     %time to finish linearly ramping wheel command
 rw_ramp_peak  = 50/100; %percent of maximum wheel speed to ramp up to
-rw_ramp_peak_original = 50/100;
 
 %rw_kd_gain = 0.0020;
 %rw_kp_gain = 0.0006;
@@ -87,8 +86,6 @@ data_out = zeros(18, n);
 w_dot_AB = zeros(3,3);
 q_dot_AB = zeros(4,3);
 AB = [23/12; -16/12; 5/12];
-k = 1;
-
 for i=1:n
 %     e1 = q(1); e2 = q(2); e3 = q(3); eta = q(4);
 %     R_eci2body = [e1^2-e2^2-e3^2+eta^2, 2*(e1*e2+eta*e3),        2*(e1*e3-eta*e2);
@@ -98,13 +95,13 @@ for i=1:n
     
     %calculate wheel command
     if t(i) > 10
-        ctl_option_rw = 1;
+        ctl_option_rw = 1; % 2
     end
 %     if t(i) > 40
 %         ctl_option_rw = 0;
 %     end
+    
     if t(i) - time_last_rw_cmd > rw_dt
-        rw_ramp_peak = 0.995*rw_ramp_peak;
         switch ctl_option_rw
             case 0
                 %option 0: no wheels
@@ -139,7 +136,7 @@ for i=1:n
                 if norm(MRP) > 1
                     MRP = -MRP/(MRP'*MRP);
                 end
-                w_meas = w + IMU_noise * randn(3,1) + IMU_bias;
+                w_meas = w + IMU_noise * randn(3,1);
                 tor_cmd = rw_kp_gain .* MRP + rw_kd_gain .* w_meas;
                 for j=1:3
                     tor_cmd(j) = min(   rw_max_tor, tor_cmd(j));
@@ -152,10 +149,9 @@ for i=1:n
         end
         time_last_rw_cmd = t(i);
     end
-   
-    % wheel dynamics
+    
+    %wheel dynamics
     % note, I'm not applying the dead zone or enforcing maximum torque
-    %k = k+0.01;
     rw_w = rw_tau * rw_max_omega * rw_cmd + (1-rw_tau) * rw_w;
     rw_torque = rw_rot_axis * -1*rw_J*(rw_w - rw_w_prev);
     rw_w_prev = rw_w;
@@ -198,14 +194,13 @@ for i=1:n
     data_out(13,i) = q(1);
     data_out(14,i) = q(2);
     data_out(15,i) = q(3);
-    data_out(16,i) = q(4);
+    data_out(16,i) = q(4);  
 end
 
-w1 = data_out(1,6000:end)
-w2 = data_out(2,6000:end)
-w3 = data_out(3,6000:end)
-w = []
-save bathymetry.mat w
+x = data_out(1:3,10000:end)';
+ 
+
+save bathymetry_no_noise.mat x
 
 %plot things
 figure, grid on, hold on
