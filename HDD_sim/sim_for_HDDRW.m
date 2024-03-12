@@ -2,8 +2,10 @@
 %AZ, Feb 15 2024
 
 %sensors
-IMU_noise = 0.05 * (pi/180); %error, deg/s -> rad/s, 1 sigma
-att_noise = 1.50 * (pi/180); %error, deg -> rad
+% IMU_noise = 0.05 * (pi/180); %error, deg/s -> rad/s, 1 sigma
+% att_noise = 1.50 * (pi/180); %error, deg -> rad
+IMU_noise = 0;
+att_noise = 0;
 
 %initial attitude and angular rates
 q = [-0.145392350642603;0;0;0.989374077068233];  %arbitrary initial attitude, scalar last
@@ -24,7 +26,7 @@ q_t = [q_i(4)   q_i(3)  -q_i(2)  -q_i(1);    %q_target
 rw_kd_gain = 0.6*[0.002149;  0.002058;  0.002291];
 rw_kp_gain = 5.0*[0.00000841; 0.00000805; 0.00000896];
 
-ctl_option_rw = 0; %0 = no RW, 1 = ramp up, 2 = controller
+ctl_option_rw = 1; %0 = no RW, 1 = ramp up, 2 = controller
 
 rw_w = 0;
 rw_w_prev = 0;
@@ -93,7 +95,7 @@ for i=1:n
     
     %calculate wheel command
     if t(i) > 10
-        ctl_option_rw = 2;
+        ctl_option_rw = 1; % 2
     end
 %     if t(i) > 40
 %         ctl_option_rw = 0;
@@ -192,8 +194,13 @@ for i=1:n
     data_out(13,i) = q(1);
     data_out(14,i) = q(2);
     data_out(15,i) = q(3);
-    data_out(16,i) = q(4);
+    data_out(16,i) = q(4);  
 end
+
+x = data_out(1:3,10000:end)';
+ 
+
+save bathymetry_no_noise.mat x
 
 %plot things
 figure, grid on, hold on
