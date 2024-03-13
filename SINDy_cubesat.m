@@ -3,8 +3,8 @@ clear all, close all, clc
 
 %% Load Data
 
-load('sc_data_noesc2.mat') % Faster with sin
-% load('sc_data_noesc3.mat') % slow
+% load('sc_data_noesc2.mat') % Faster with sin
+ load('sc_data_noesc3.mat') % slow
 
 %x = w_data(1:3, 10000:end)';
 x = w_data';
@@ -41,6 +41,7 @@ dx = [dx; dx(end,:)];
 
 %% Build library and compute sparse regression
 polyorder = 2; % up to third order polynomials
+
 usesine = 1;
 Theta = poolData(x, n, polyorder, usesine);
 lambda = 0.3;      % lambda is our sparsification knob.
@@ -62,5 +63,16 @@ plot(tD, xD * (180/pi), '--', 'LineWidth', 2)
 xlabel("Time (s)")
 ylabel('Angular Rates, deg/s')
 title("Actual vs SINDy Model")
+
 legend('x true', 'y true', 'z true', 'x model', 'y model', 'z model')
+xlabel('Time, s','FontSize',14)
+ylabel('Angular Rates, deg/s','FontSize',14)
+if usesine == 0
+        usedsine = "no"
+    else
+        usedsine = "yes"
+end
+titlestring = sprintf("Spacecraft Rotation Rates Over Time\nPolynomial Order = %d, Sparsification" + ...
+    " = %0.2f, Sine Used = "+usedsine,polyorder,lambda)
+title(titlestring,'FontSize',16)
 
