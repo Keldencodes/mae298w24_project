@@ -2,12 +2,12 @@ clear all, close all, clc
 
 
 %% Load Data
-load('sc_data_noesc1.mat')
+load('sc_data_noesc4.mat')
 %x = w_data(1:3, 10000:end)';
 x = w_data';
 dt = 0.01; % sample time for data
 n=3; 
-%xTrain = x(1:100, :);
+xTrain = x(1:50001, :);
 
 
 
@@ -37,14 +37,14 @@ dx = [dx; dx(end,:)];
 
 
 %% Build library and compute sparse regression
-polyorder = 2; % up to third order polynomials
-usesine = 1;
+polyorder = 3; % up to third order polynomials
+usesine = 0;
 Theta = poolData(x, n, polyorder, usesine);
-lambda = .01;      % lambda is our sparsification knob.
+lambda = .00001;      % lambda is our sparsification knob.
 Xi = sparsifyDynamics(Theta,dx,lambda,n)
 poolDataLIST({'x','y','z'},Xi,n,polyorder,usesine);
 
-t_f = 60;
+t_f = 600;
 t = 0:dt:t_f;
 tspan = t; %t(1:2000);
 options = odeset('RelTol',1e-6,'AbsTol',1e-6*ones(1,n));
@@ -53,8 +53,10 @@ x0 = x(1,:)';% initial conditions
 % 
 % 
 figure
-plot(t(1:length(tspan)),x(1:length(tspan), :), 'LineWidth', 5)
+plot(t(1:length(tspan)),x(1:length(tspan), :)*180/pi, 'LineWidth', 5)
 hold on
-plot(tD, xD, '--', 'LineWidth', 2)
+plot(tD, xD*180/pi, '--', 'LineWidth', 2)
 legend('x true', 'y true', 'z true', 'x model', 'y model', 'z model')
-
+ylabel('Rotational rates \omega [deg/s]', 'FontSize', 14)
+xlabel('Time [s]', 'FontSize', 14)
+title("Actual Data vs SINDy Model", 'FontSize', 16)
