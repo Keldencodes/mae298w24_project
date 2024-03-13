@@ -212,6 +212,11 @@ ylabel('Angular Rates, deg/s')
 title('S/C Rotation Rates vs Time')
 legend('X','Y','Z')
 
+% Saving Files
+filename = 'SlowSine';
+fname = 'C:\Users\candr\Documents\MAE298_Project_Git\Project_figures';
+    saveas(gcf, fullfile(fname, filename), 'jpeg');
+
 figure, grid on, hold on
 plot(t, data_out(7:9,:))
 title('RW Command')

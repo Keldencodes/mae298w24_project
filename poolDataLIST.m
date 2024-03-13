@@ -34,7 +34,7 @@ if(polyorder>=3)
     end
 end
 
-numsin = 1; % number of sines
+numsin = 2; % number of sines
 if(usesine)
     for k=1:numsin
         for j=1:nVars
