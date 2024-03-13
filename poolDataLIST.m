@@ -71,7 +71,7 @@ if(polyorder>=5)
 end
 
 if(usesine)
-    for k=1:10;
+    for k=1:1;
         yout{ind,1} = ['sin(',num2str(k),'*yin)'];
         ind = ind + 1;
         yout{ind,1} = ['cos(',num2str(k),'*yin)'];
