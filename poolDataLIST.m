@@ -72,10 +72,12 @@ end
 
 if(usesine)
     for k=1:10;
-        yout{ind,1} = ['sin(',num2str(k),'*yin)'];
-        ind = ind + 1;
-        yout{ind,1} = ['cos(',num2str(k),'*yin)'];
-        ind = ind + 1;
+        for j = 1:nVars
+            yout{ind,1} = ['sin(',num2str(k),num2str(yin{j}),')'];
+            ind = ind + 1;
+            yout{ind,1} = ['cos(',num2str(k),num2str(yin{j}),')'];
+            ind = ind + 1;
+        end
     end
 end
 
@@ -86,6 +88,7 @@ for k=1:length(yin)
     newout{1,1+k} = [yin{k},'dot'];
 end
 % newout = {'','xdot','ydot','udot'};
+% for k=1:size(ahat,1)
 for k=1:size(ahat,1)
     newout(k+1,1) = output(k);
     for j=1:length(yin)

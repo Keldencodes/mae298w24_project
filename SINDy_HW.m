@@ -6,7 +6,8 @@ clear all, close all,  clc
 %load('SYS1.mat')
 %load('SYS2.mat')
 % load('bathymetry.mat')
-load('bathymetry_no_noise.mat')
+ load('bathymetry_no_noise.mat')
+% load('bathymetry_real_clean.mat')
 dt = 0.01; % sample time for data
 n=3; 
 
@@ -39,7 +40,7 @@ n=3;
 %% part d
 % lets add noise for fun :)
 % noise for SYS1
-noise = normrnd(0.1,0.2, size(x,1), size(x,2));
+% noise = normrnd(0.1,0.2, size(x,1), size(x,2));
 
 %noise for SYS2
 %noise = normrnd(0.1,0.2, size(x,1), size(x,2))/100;
@@ -63,9 +64,10 @@ for i = 1:size(dx,2)
     plot(dx(:,i)); hold on
     
     % filter data using Savitzky Golay
-    rd = 2; % polynomial order (use 2 for SYS2.mat)
-    fl = 21; % length of data frames (USE 21 FOR SYS2.mat)   
-    dx_filter(:,i) = sgolayfilt(dx(:,i),rd,fl);
+    % rd = 2; % polynomial order (use 2 for SYS2.mat)
+    % fl = 21; % length of data frames (USE 21 FOR SYS2.mat)   
+    % dx_filter(:,i) = sgolayfilt(dx(:,i),rd,fl);
+    dx_filter = dx;
     
     % plot filtered data
     plot(dx_filter(:,i)); hold off
@@ -77,10 +79,10 @@ for i = 1:size(dx,2)
 end
 
 %% Build library and compute sparse regression
-polyorder = 2; % up to third order polynomials
+polyorder = 1; % up to third order polynomials
 usesine = 1;
 Theta = poolData(x,n,polyorder,usesine); 
-lambda = 0.01;      % lambda is our sparsification knob.
-Xi = sparsifyDynamics(Theta,dx_filter,lambda,n)
+lambda = 0.1;      % lambda is our sparsification knob.
+Xi = sparsifyDynamics(Theta,dx_filter,lambda,n);
 poolDataLIST({'x','y','z'},Xi,n,polyorder,usesine);
 
