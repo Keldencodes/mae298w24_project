@@ -10,7 +10,7 @@ att_noise = 0;
 
 %initial attitude and angular rates
 q =  [0; 0; 0; 1]; %[-0.145392350642603;0;0;0.989374077068233];  %arbitrary initial attitude, scalar last
-w =  0.5*[5;2;3]*pi/180;%0.2*[1;5;2]*pi/180;  %deg/s -> rad/s
+w =  0.5*[7;7;3]*pi/180;%0.2*[1;5;2]*pi/180;  %deg/s -> rad/s
 
 %target rotation
 ang = 135 * (pi/180);
@@ -202,7 +202,7 @@ end
 w_data(1,:) = data_out(1,:);
 w_data(2,:) = data_out(2,:);
 w_data(3,:) = data_out(3,:);
-save sc_data_noesc3.mat w_data
+save sc_data_noesc2.mat w_data
 
 %plot things
 figure, grid on, hold on

@@ -2,7 +2,10 @@ clear all, close all, clc
 
 
 %% Load Data
-load('sc_data_noesc1.mat')
+
+load('sc_data_noesc2.mat') % Faster with sin
+% load('sc_data_noesc3.mat') % slow
+
 %x = w_data(1:3, 10000:end)';
 x = w_data';
 dt = 0.01; % sample time for data
@@ -14,8 +17,8 @@ n=3;
 for i=1:3
     dx(:,i) = diff(x(:,i))/dt;%diff(x(1:1000,i))/dt; % only using part of the data for training
 end
-dx = [dx; dx(end,:)];
 
+dx = [dx; dx(end,:)];
 
 %% part d
 % lets add noise for fun :)
@@ -36,9 +39,9 @@ dx = [dx; dx(end,:)];
 
 %% Build library and compute sparse regression
 polyorder = 2; % up to third order polynomials
-usesine = 1;
+usesine = 0;
 Theta = poolData(x, n, polyorder, usesine);
-lambda = .01;      % lambda is our sparsification knob.
+lambda = 0.01;      % lambda is our sparsification knob.
 Xi = sparsifyDynamics(Theta,dx,lambda,n)
 poolDataLIST({'x','y','z'},Xi,n,polyorder,usesine);
 
