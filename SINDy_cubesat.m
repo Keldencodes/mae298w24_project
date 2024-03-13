@@ -10,15 +10,18 @@ n=3;
 %xTrain = x(1:100, :);
 
 
-%% Compute derivative
+
+%% compute derivative
 for i=1:3
     dx(:,i) = diff(x(:,i))/dt;%diff(x(1:1000,i))/dt; % only using part of the data for training
 end
 dx = [dx; dx(end,:)];
 
 
-%% can add noise to data
-% 
+
+%% part d
+% lets add noise for fun :)
+% noise for SYS1
 % noise = normrnd(0.1,0.2, size(x,1), size(x,2));
 
 % noise for SYS2
