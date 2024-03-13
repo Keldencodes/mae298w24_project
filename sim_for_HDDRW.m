@@ -1,13 +1,14 @@
 %Dynamics sim to determine measurement req for HDD-RW Orbital Flight
 %AZ, Feb 15 2024
-
+close all
+clear all
 %sensors
 IMU_noise = 0.05 * (pi/180); %error, deg/s -> rad/s, 1 sigma
 att_noise = 1.50 * (pi/180); %error, deg -> rad
 
 %initial attitude and angular rates
-q = [-0.145392350642603;0;0;0.989374077068233];  %arbitrary initial attitude, scalar last
-w = 0.2*[1;5;2]*pi/180;  %deg/s -> rad/s
+q =  [0; 0; 0; 1]; %[-0.145392350642603;0;0;0.989374077068233];  %arbitrary initial attitude, scalar last
+w =  0.5*[5;2;3]*pi/180;%0.2*[1;5;2]*pi/180;  %deg/s -> rad/s
 
 %target rotation
 ang = 135 * (pi/180);
@@ -24,7 +25,7 @@ q_t = [q_i(4)   q_i(3)  -q_i(2)  -q_i(1);    %q_target
 rw_kd_gain = 0.6*[0.002149;  0.002058;  0.002291];
 rw_kp_gain = 5.0*[0.00000841; 0.00000805; 0.00000896];
 
-ctl_option_rw = 0; %0 = no RW, 1 = ramp up, 2 = controller
+ctl_option_rw = 1; %0 = no RW, 1 = ramp up, 2 = controller
 
 rw_w = 0;
 rw_w_prev = 0;
@@ -89,16 +90,13 @@ for i=1:n
 %     R_eci2body = [e1^2-e2^2-e3^2+eta^2, 2*(e1*e2+eta*e3),        2*(e1*e3-eta*e2);
 %                   2*(e1*e2-eta*e3), -1*e1^2+e2^2-e3^2+eta^2, 2*(e2*e3+eta*e1);
 %                   2*(e1*e3+eta*e2),  2*(e2*e3-eta*e1), -1*e1^2-e2^2+e3^2+eta^2];
-    
-    
     %calculate wheel command
     if t(i) > 10
-        ctl_option_rw = 2;
+        ctl_option_rw = 0;
     end
 %     if t(i) > 40
 %         ctl_option_rw = 0;
 %     end
-    
     if t(i) - time_last_rw_cmd > rw_dt
         switch ctl_option_rw
             case 0
@@ -107,10 +105,14 @@ for i=1:n
             case 1
                 %option 1: wheel ramp up
                 if t(i) > rw_ramp_start
+                    rw_cmd(1) = rw_ramp_peak * (t(i) - rw_ramp_start)/(rw_ramp_end-rw_ramp_start);
                     rw_cmd(2) = rw_ramp_peak * (t(i) - rw_ramp_start)/(rw_ramp_end-rw_ramp_start);
+                    rw_cmd(3) = rw_ramp_peak * (t(i) - rw_ramp_start)/(rw_ramp_end-rw_ramp_start);
                 end
                 if t(i) > rw_ramp_end
+                    rw_cmd(1) = rw_ramp_peak;
                     rw_cmd(2) = rw_ramp_peak;
+                    rw_cmd(3) = rw_ramp_peak;
                 end
             case 2
                 %option 2: control
@@ -195,6 +197,11 @@ for i=1:n
     data_out(16,i) = q(4);
 end
 
+w_data(1,:) = data_out(1,:);
+w_data(2,:) = data_out(2,:);
+w_data(3,:) = data_out(3,:);
+save sc_data_noesc3.mat w_data
+
 %plot things
 figure, grid on, hold on
 plot(t, (180/pi)*data_out(1:3,:))
@@ -233,3 +240,23 @@ xlabel('Time, s')
 ylabel('q')
 title('Attitude vs Time')
 legend('qs','qx','qy','qz')
+
+figure, grid on, hold on
+plot(data_out(7,:), 10^3*data_out(10,:))
+hold on
+plot(data_out(8,:), 10^3*data_out(11,:))
+plot(data_out(9,:), 10^3*data_out(12,:))
+xlabel('ESC Command')
+ylabel('Torque')
+title('Torque vs Command')
+
+figure, grid on, hold on
+
+plot(data_out(7,:), (180/pi)*data_out(1,:))
+hold on
+plot(data_out(8,:), (180/pi)*data_out(2,:), '*')
+plot(data_out(9,:), (180/pi)*data_out(3,:))
+xlabel('ESC Command')
+ylabel('Angular Rates, deg/s')
+title('Torque vs Angular Rates')
+legend('X','Y','Z')
